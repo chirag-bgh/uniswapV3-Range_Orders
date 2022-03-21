@@ -69,37 +69,7 @@ contract Limit_order {
                     _amount1 >= params._amount1Min
             );
 
-            //_mint(msg.sender, (_tokenId = nextId));
-            
-
-            //activeOrders[msg.sender] = activeOrders[msg.sender].add(1);
-            //uint32 _selectedIndex = _selectMonitor();
-            //nextMonitor = uint256(_selectedIndex).add(1).toUint32();
-
-            (
-                ,
-                uint256 _feeGrowthInside0LastX128,
-                uint256 _feeGrowthInside1LastX128,
-                ,
-
-            ) = _pool.positions(
-                    PositionKey.compute(address(this), _tickLower, _tickUpper)
-                );
-
-            limitOrders[_tokenId] = LimitOrder({
-                pool: _poolAddress,
-                monitor: _selectedIndex,
-                tickLower: _tickLower,
-                tickUpper: _tickUpper,
-                liquidity: _liquidity,
-                processed: false,
-                feeGrowthInside0LastX128: _feeGrowthInside0LastX128,
-                feeGrowthInside1LastX128: _feeGrowthInside1LastX128,
-                tokensOwed0: _amount0.toUint128(),
-                tokensOwed1: _amount1.toUint128()
-            });
-
-            monitors[_selectedIndex].startMonitor(_tokenId);
+                   
         }
 
         emit LimitOrderCreated(
