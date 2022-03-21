@@ -6,9 +6,14 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "./UniswapUtils.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/SafeCast.sol";
 
 
 contract Limit_order is UniswapUtils {
+
+    using SafeMath for uint256;
+    using SafeCast for uint256;
 
     struct LimitOrderParams {
         address _token0;
