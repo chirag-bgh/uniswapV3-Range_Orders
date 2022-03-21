@@ -1,13 +1,14 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity ^0.7.6;
 
 import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import "./IUniswapUtils.sol";
+import "./UniswapUtils.sol";
 
-contract Limit_order {
+
+contract Limit_order is UniswapUtils {
 
     struct LimitOrderParams {
         address _token0;
@@ -18,6 +19,24 @@ contract Limit_order {
         uint128 _amount1;
         uint256 _amount0Min;
         uint256 _amount1Min;
+    }
+
+    struct LimitOrder {
+        address pool;
+        uint32 monitor;
+        int24 tickLower;
+        int24 tickUpper;
+        uint128 liquidity;
+        bool processed;
+        uint256 feeGrowthInside0LastX128;
+        uint256 feeGrowthInside1LastX128;
+        uint128 tokensOwed0;
+        uint128 tokensOwed1;
+    }
+
+    struct MintCallbackData {
+        PoolAddress.PoolKey poolKey;
+        address payer;
     }
 
     address constant factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
@@ -64,12 +83,14 @@ contract Limit_order {
                     MintCallbackData({poolKey: _poolKey, payer: msg.sender})
                 )
             );
-            require(
-                _amount0 >= params._amount0Min &&
-                    _amount1 >= params._amount1Min
-            );
 
-                   
+            require(_amount0 >= params._amount0Min && _amount1 >= params._amount1Min);       
+            _mint(msg.sender, (_tokenId = nextId));    
+
+            (, uint256 _feeGrowthInside0LastX128, uint256 _feeGrowthInside1LastX128, , ) = _pool.positions(
+                PositionKey.compute(address(this), _tickLower, _tickUpper)
+            );
+        
         }
 
         emit LimitOrderCreated(
@@ -85,7 +106,42 @@ contract Limit_order {
 
 
 
-    function processLimitOrder() public {
-        //executes the swap
+    function processLimitOrder(uint256 _tokenId) external override returns (uint128 _amount0, uint128 _amount1) {
+
+        LimitOrder storage limitOrder = limitOrders[_tokenId];
+        require(!limitOrder.processed);
+
+        // remove liqudiity
+        (_amount0, _amount1) = _removeLiquidity(
+            IUniswapV3Pool(limitOrder.pool),
+            limitOrder.tickLower,
+            limitOrder.tickUpper,
+            limitOrder.liquidity,
+            limitOrder.feeGrowthInside0LastX128,
+            limitOrder.feeGrowthInside1LastX128
+        );
+
+        limitOrder.liquidity = 0;
+        limitOrder.processed = true;
+        limitOrder.tokensOwed0 = _amount0;
+        limitOrder.tokensOwed1 = _amount1;
+
+        address _owner = ownerOf(_tokenId);
+
+        // update balance
+        uint256 balance = funding[_owner];
+                
+        // collect the funds
+        _collect(
+            _tokenId,
+            IUniswapV3Pool(limitOrder.pool),
+            limitOrder.tickLower,
+            limitOrder.tickUpper,
+            limitOrder.tokensOwed0,
+            limitOrder.tokensOwed1,
+            _owner
+        );
+
+        emit LimitOrderProcessed(msg.sender, _tokenId, _serviceFeePaid);
     }
 }
