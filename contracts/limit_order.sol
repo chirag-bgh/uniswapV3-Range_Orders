@@ -8,12 +8,29 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "./UniswapUtils.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/SafeCast.sol";
+import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+import "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol";
+import '@uniswap/v3-core/contracts/libraries/FixedPoint128.sol';
+import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
+import "@uniswap/v3-periphery/contracts/libraries/PositionKey.sol";
+import "@uniswap/v3-periphery/contracts/libraries/CallbackValidation.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/external/IWETH9.sol";
 
 
 contract Limit_order is UniswapUtils {
 
     using SafeMath for uint256;
     using SafeCast for uint256;
+   
+
+    constructor() {
+        
+    }
+
+    mapping (uint256 => LimitOrder) private limitOrders;    
+    
 
     struct LimitOrderParams {
         address _token0;
@@ -28,7 +45,6 @@ contract Limit_order is UniswapUtils {
 
     struct LimitOrder {
         address pool;
-        uint32 monitor;
         int24 tickLower;
         int24 tickUpper;
         uint128 liquidity;
@@ -46,8 +62,7 @@ contract Limit_order is UniswapUtils {
 
     address constant factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
 
-    event LimitOrderCreated(address indexed owner, uint256 indexed tokenId,uint128 orderType, 
-                             uint160 sqrtPriceX96, uint256 amount0, uint256 amount1);
+    event LimitOrderCreated(address indexed owner, uint256 indexed tokenId,uint128 orderType, uint160 sqrtPriceX96, uint256 amount0, uint256 amount1);
 
     function placeLimitOrder(LimitOrderParams calldata params) public payable virtual override returns (uint256 _tokenId) {
 
@@ -65,22 +80,21 @@ contract Limit_order is UniswapUtils {
             fee: params._fee
         });
 
-        address _poolAddress = PoolAddress.computeAddress(address(factory),_poolKey);
+        address _poolAddress = PoolAddress.computeAddress(factory,_poolKey);
 
         require(_poolAddress != address(0), "Invalid token(s)");
         _pool = IUniswapV3Pool(_poolAddress);
 
-        (_tickLower, _tickUpper, _liquidity, _orderType) = utils
-            .calculateLimitTicks(
+        (_tickLower, _tickUpper, _liquidity, _orderType) = calculateLimitTicks(
                 _pool,
                 params._sqrtPriceX96,
                 params._amount0,
                 params._amount1
             );
 
-        {
-            (uint256 _amount0, uint256 _amount1) = _pool.mint(
-                address(this),
+        
+        (uint256 _amount0, uint256 _amount1) = _pool.mint(
+                msg.sender,
                 _tickLower,
                 _tickUpper,
                 _liquidity,
@@ -90,13 +104,24 @@ contract Limit_order is UniswapUtils {
             );
 
             require(_amount0 >= params._amount0Min && _amount1 >= params._amount1Min);       
-            _mint(msg.sender, (_tokenId = nextId));    
+              
 
             (, uint256 _feeGrowthInside0LastX128, uint256 _feeGrowthInside1LastX128, , ) = _pool.positions(
                 PositionKey.compute(address(this), _tickLower, _tickUpper)
             );
+
+            limitOrders[_tokenId] = LimitOrder({
+                pool: _poolAddress,
+                tickLower: _tickLower,
+                tickUpper: _tickUpper,
+                liquidity: _liquidity,
+                processed: false,
+                feeGrowthInside0LastX128: _feeGrowthInside0LastX128,
+                feeGrowthInside1LastX128: _feeGrowthInside1LastX128,
+                tokensOwed0: _amount0.toUint128(),
+                tokensOwed1: _amount1.toUint128()
+            });       
         
-        }
 
         emit LimitOrderCreated(
             msg.sender,
@@ -151,8 +176,71 @@ contract Limit_order is UniswapUtils {
     }
 
     
+    function _removeLiquidity(
+        IUniswapV3Pool _pool,
+        int24 _tickLower,
+        int24 _tickUpper,
+        uint128 _liquidity,
+        uint256 _feeGrowthInside0LastX128,
+        uint256 _feeGrowthInside1LastX128
+    )
+    internal
+    returns (
+        uint128 tokensOwed0,
+        uint128 tokensOwed1
+    ) {
 
+        if (_liquidity > 0) {
+            (uint256 amount0, uint256 amount1) = _pool.burn(
+                _tickLower, _tickUpper, _liquidity
+            );
 
-    // implement collect function 
-    // implement removeliquidity function
+            bytes32 positionKey = PositionKey.compute(address(this), _tickLower, _tickUpper);
+            (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, , ) = _pool.positions(positionKey);
+
+            tokensOwed0 = amount0.add(
+                FullMath.mulDiv(
+                    feeGrowthInside0LastX128 - _feeGrowthInside0LastX128,
+                    _liquidity,
+                    FixedPoint128.Q128
+                )
+            ).toUint128();
+
+            tokensOwed1 = amount1.add(
+                FullMath.mulDiv(
+                    feeGrowthInside1LastX128 - _feeGrowthInside1LastX128,
+                    _liquidity,
+                    FixedPoint128.Q128
+                )
+            ).toUint128();
+        }
+    }
+
+    function _collect(
+        uint256 _tokenId,
+        IUniswapV3Pool _pool,
+        int24 _tickLower,
+        int24 _tickUpper,
+        uint128 _tokensOwed0,
+        uint128 _tokensOwed1,
+        address _owner
+    ) internal returns
+        (uint256 _tokensToSend0, uint256 _tokensToSend1) {
+
+        (_tokensToSend0, _tokensToSend1) =
+            _pool.collect(
+                msg.sender,
+                 _tickLower,
+                _tickUpper,
+                _tokensOwed0,
+                _tokensOwed1
+            );
+
+        require(_tokensToSend0 > 0 || _tokensToSend1 > 0, "LOM_TS");
+
+        TransferHelper.safeTransfer(_pool.token0(), _tokensToSend0, _owner);
+        TransferHelper.safeTransfer(_pool.token1(), _tokensToSend1, _owner);
+
+        emit LimitOrderCollected(_owner, _tokenId, _tokensToSend0, _tokensToSend1);
+    }
 }
