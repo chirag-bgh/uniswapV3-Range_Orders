@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity <0.8.0;
 pragma abicoder v2;
 
 import "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
@@ -26,11 +26,6 @@ interface IUniswapUtils {
         uint128 _orderType
     );
 
-    function _amountsForLiquidity(
-        IUniswapV3Pool pool,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 liquidity
-    ) external view returns (uint256, uint256);
+
 
 }
