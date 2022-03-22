@@ -2,14 +2,16 @@
 pragma solidity <0.8.0;
 
 import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
-import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+// import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+// import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
+// import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "./UniswapUtils.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/SafeCast.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/SafeCast.sol";
+// import "@openzeppelin/contracts/math/SafeMath.sol";
+// import "@openzeppelin/contracts/utils/SafeCast.sol";
+// import "@openzeppelin/contracts/math/SafeMath.sol";
+// import "@openzeppelin/contracts/utils/SafeCast.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol";
 import '@uniswap/v3-core/contracts/libraries/FixedPoint128.sol';
@@ -19,7 +21,7 @@ import "@uniswap/v3-periphery/contracts/libraries/CallbackValidation.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/external/IWETH9.sol";
 
 
-contract Limit_order is UniswapUtils {
+contract Limit_order is UniswapUtils,Ownable, IERC721 {
 
     using SafeMath for uint256;
     using SafeCast for uint256;
@@ -63,6 +65,7 @@ contract Limit_order is UniswapUtils {
     address constant factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
 
     event LimitOrderCreated(address indexed owner, uint256 indexed tokenId,uint128 orderType, uint160 sqrtPriceX96, uint256 amount0, uint256 amount1);
+    event LimitOrderCollected(address indexed owner, uint256 indexed tokenId, uint256 amount0, uint256 amount1);
 
     function placeLimitOrder(LimitOrderParams calldata params) public payable virtual override returns (uint256 _tokenId) {
 
@@ -85,7 +88,7 @@ contract Limit_order is UniswapUtils {
         require(_poolAddress != address(0), "Invalid token(s)");
         _pool = IUniswapV3Pool(_poolAddress);
 
-        (_tickLower, _tickUpper, _liquidity, _orderType) = calculateLimitTicks(
+        (_tickLower, _tickUpper, _liquidity, _orderType) = UniswapUtils.calculateLimitTicks(
                 _pool,
                 params._sqrtPriceX96,
                 params._amount0,
@@ -131,6 +134,8 @@ contract Limit_order is UniswapUtils {
             params._amount0,
             params._amount1
         );
+
+        
     }
 
 
@@ -142,6 +147,7 @@ contract Limit_order is UniswapUtils {
         require(!limitOrder.processed);
 
         // remove liqudiity
+        // burn 
         (_amount0, _amount1) = _removeLiquidity(
             IUniswapV3Pool(limitOrder.pool),
             limitOrder.tickLower,
@@ -155,11 +161,10 @@ contract Limit_order is UniswapUtils {
         limitOrder.processed = true;
         limitOrder.tokensOwed0 = _amount0;
         limitOrder.tokensOwed1 = _amount1;
-
+        
         address _owner = ownerOf(_tokenId);
-
         // update balance
-        uint256 balance = funding[_owner];
+        // uint256 balance = funding[_owner];
                 
         // collect the funds
         _collect(
@@ -172,7 +177,7 @@ contract Limit_order is UniswapUtils {
             _owner
         );
 
-        emit LimitOrderProcessed(msg.sender, _tokenId, _serviceFeePaid);
+       
     }
 
     
