@@ -9,7 +9,9 @@
     "hardhat": "^2.9.1"
   },
   "dependencies": {
+    "@openzeppelin/contracts-upgradeable": "^4.5.2",
     "@uniswap/v3-core": "^1.0.1",
-    "@uniswap/v3-periphery": "^1.4.0"
+    "@uniswap/v3-periphery": "^1.4.0",
+    "import": "^0.0.6"
   }
 }

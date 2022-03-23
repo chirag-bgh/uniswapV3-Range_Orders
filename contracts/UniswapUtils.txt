@@ -12,21 +12,21 @@ import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-periphery/contracts/libraries/LiquidityAmounts.sol";
 
-import "./IUniswapUtils.sol";
 
-contract UniswapUtils is IUniswapUtils {
+
+contract UniswapUtils  {
 
     function calculateLimitTicks(
         IUniswapV3Pool _pool,
         uint160 _sqrtPriceX96,
         uint256 _amount0,
         uint256 _amount1
-    ) external override view
+    ) external view
     returns (
         int24 _lowerTick,
-        int24 _upperTick,
-        uint128 _liquidity,
-        uint128 _orderType
+        int24 _upperTick
+        // uint128 _liquidity,
+        // uint128 _orderType
     ) {
 
         int24 tickSpacing = _pool.tickSpacing();
