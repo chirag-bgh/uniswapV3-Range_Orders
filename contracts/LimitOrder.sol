@@ -73,11 +73,11 @@ contract LimitOrder is UniswapUtils{
 
     function processLimitOrder(uint256 _tokenId)
         external
-        // returns ( uint128 _amount0, uint128 _amount1) {
+        returns ( uint256 _amount0, uint256 _amount1) {
 
             LimitOrder memory limitOrder = limitOrders[_tokenId];
 
-            INonfungiblePositionManager.decreaseLiquidity(
+            (uint256 _amount0, uint256 _amount1) = INonfungiblePositionManager.decreaseLiquidity(
                 _tokenId,
                 limitOrder.liquidity,
                 limitOrder.tokensOwed0,
