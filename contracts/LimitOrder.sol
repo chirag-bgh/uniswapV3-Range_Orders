@@ -84,7 +84,7 @@ contract LimitOrder is UniswapUtils{
                 limitOrder.tokensOwed1
             );
 
-            (uint256 A1, uint256 A2) = INonfungiblePositionManager.collect(
+            INonfungiblePositionManager.collect(
                 _tokenId,
                 msg.sender,
                 _amount0,
