@@ -25,5 +25,8 @@ module.exports = {
         url: "https://mainnet.infura.io/v3/609bf3e77ede4b2980e3998956e6876b",
       }
     }
+  },
+  mocha: {
+    timeout: 1000  * 10000
   }
 };
