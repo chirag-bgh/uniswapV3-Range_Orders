@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-waffle");
 
+
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -18,4 +19,11 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.7.6",
+  networks: {
+    hardhat: {
+      forking : {
+        url: "https://mainnet.infura.io/v3/609bf3e77ede4b2980e3998956e6876b",
+      }
+    }
+  }
 };

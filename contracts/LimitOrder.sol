@@ -9,17 +9,22 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
 import "./UniswapUtils.sol";
 import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
-
+import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 
 
 contract UniswapLimitOrder is UniswapUtils {
 
+    using TransferHelper for *;
     using SafeMath for uint256;
     using SafeCast for uint256;
+    address constant nfpm = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
     address constant factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;    
     mapping (uint256 => LimitOrder) private limitOrders; 
-    INonfungiblePositionManager internal pm = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
+    mapping (address => uint256) public ownerToNFT;
+    mapping (uint256 => address) private NFTToowner;
+    INonfungiblePositionManager internal pm = INonfungiblePositionManager(nfpm);
+
 
     event LimitOrderCreated(
         address indexed owner, 
@@ -41,11 +46,9 @@ contract UniswapLimitOrder is UniswapUtils {
         address _token1;
         uint24 _fee;        
         uint160 _sqrtPriceX96; 
-        uint128 _amount0;
-        uint128 _amount1;
-        uint256 _amount0Min;
-        uint256 _amount1Min;
-        
+        uint256 amount;
+        uint256 amountMin;        
+        bool token0To1;
     }
 
     struct LimitOrder {        
@@ -54,8 +57,9 @@ contract UniswapLimitOrder is UniswapUtils {
         uint128 liquidity;     
         uint128 tokensOwed0;
         uint128 tokensOwed1;
+        bool token0To1;
     }  
-
+   
 
 
     function placeLimitOrder(LimitOrderParams calldata params) 
@@ -64,66 +68,91 @@ contract UniswapLimitOrder is UniswapUtils {
         virtual     
         returns (uint256 _tokenId){
 
-            require(params._token0 < params._token1,"Change the order");
+            uint256 _amount0;
+            uint256 _amount1;
+            uint256 _amount0Min;
+            uint256 _amount1Min;
+            
+            if (params.token0To1) {                
+                 _amount0 = params.amount;
+                 _amount1 = 0;
+                 _amount0Min = params.amountMin;
+                 _amount1Min = 0;
+                 TransferHelper.safeTransferFrom(params._token0,msg.sender, address(this), _amount0);
+                 TransferHelper.safeApprove(params._token0, nfpm, _amount0);
+            } else {
+                 _amount1 = params.amount;
+                 _amount0 = 0;
+                 _amount1Min = params.amountMin;
+                 _amount0Min = 0;
+                 TransferHelper.safeTransferFrom(params._token1,msg.sender, address(this), _amount1);
+                 TransferHelper.safeApprove(params._token1, nfpm, _amount1);
+            }
 
-            uint128 _liquidity;
-            uint256 amount0;
-            uint256 amount1;
+            require(params._token0 < params._token1,"Change the order");
+            // user should pass order type, take tokens from his account accordingly
+            // uint256 _amount0;
+            // uint256 _amount1;
             int24 _tickLower;
             int24 _tickUpper;
 
+            
             IUniswapV3Pool _pool;
-
             PoolAddress.PoolKey memory _poolKey = PoolAddress.PoolKey({
             token0: params._token0,
             token1: params._token1,
-            fee: params._fee
-            });
-
+            fee: params._fee});
             address _poolAddress = PoolAddress.computeAddress(factory,_poolKey);
-
             _pool = IUniswapV3Pool(_poolAddress);
+            
 
             ( _tickLower , _tickUpper) = UniswapUtils.calculateLimitTicks(
                 _pool,
                 params._sqrtPriceX96,
-                params._amount0, 
-                params._amount1
+                _amount0, 
+                _amount1
             );
 
+            uint128 _liquidity;
+            uint256 amount0;
+            uint256 amount1;
             (_tokenId, _liquidity,  amount0,  amount1) = pm.mint(INonfungiblePositionManager.MintParams({
                 token0 : params._token0,
                 token1: params._token1,
                 fee: params._fee,
                 tickLower: _tickLower,
                 tickUpper: _tickUpper,
-                amount0Desired : params._amount0,
-                amount1Desired : params._amount1,
-                amount0Min: params._amount0Min,
-                amount1Min: params._amount1Min,
-                recipient: msg.sender,
+                amount0Desired : _amount0,
+                amount1Desired : _amount1,
+                amount0Min: _amount0Min,
+                amount1Min:_amount1Min,
+                recipient:address(this),
                 deadline: uint256(-1)
             })
 
             );
 
-            limitOrders[_tokenId] = LimitOrder({
-                
+            limitOrders[_tokenId] = LimitOrder({                
                 tickLower: _tickLower,
                 tickUpper: _tickUpper,
                 liquidity: _liquidity,                               
                 tokensOwed0: amount0.toUint128(),
-                tokensOwed1: amount1.toUint128()
+                tokensOwed1: amount1.toUint128(), 
+                token0To1: params.token0To1
             });       
 
-            require(amount0 >= params._amount0Min && amount1 >= params._amount1Min);   
+            // mapping for owner -> nftid
+            // nft -> owner
+            _tokenId = ownerToNFT[msg.sender];
+            NFTToowner[_tokenId] = msg.sender;
+            
 
             emit LimitOrderCreated(
                 msg.sender,
                 _tokenId,
                 params._sqrtPriceX96,
-                params._amount0,
-                params._amount1
+                _amount0,
+                _amount1
             );
 
         }
@@ -132,7 +161,6 @@ contract UniswapLimitOrder is UniswapUtils {
     function processLimitOrder(uint256 _tokenId)
         external
         {
-
             LimitOrder memory limitOrder = limitOrders[_tokenId];
 
             pm.decreaseLiquidity(INonfungiblePositionManager.DecreaseLiquidityParams({
@@ -152,9 +180,6 @@ contract UniswapLimitOrder is UniswapUtils {
 
             pm.burn(_tokenId);
 
-            
-
         }
-
 
 }
