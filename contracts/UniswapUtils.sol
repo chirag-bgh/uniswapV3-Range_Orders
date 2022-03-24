@@ -3,7 +3,6 @@ pragma solidity <0.8.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
-//import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
 import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
@@ -21,18 +20,16 @@ contract UniswapUtils  {
         uint160 _sqrtPriceX96,
         uint256 _amount0,
         uint256 _amount1
-    ) external view
+    ) public view
     returns (
         int24 _lowerTick,
-        int24 _upperTick
-        // uint128 _liquidity,
-        // uint128 _orderType
+        int24 _upperTick        
     ) {
 
         int24 tickSpacing = _pool.tickSpacing();
         (uint160 sqrtRatioX96,, , , , , ) = _pool.slot0();
 
-        int24 _targetTick = TickMath.getTickAtSqrtRatio(_sqrtPriceX96);
+        int24 _targetTick = TickMath.getTickAtSqrtRatio(_sqrtPriceX96); 
 
         int24 tickFloor = _floor(_targetTick, tickSpacing);
 
@@ -59,7 +56,7 @@ contract UniswapUtils  {
         int24 _askLower, int24 _askUpper,
         uint256 _amount0, uint256 _amount1,
         uint160 sqrtRatioX96, int24 _tickSpacing) internal pure
-    returns (int24 _lowerTick, int24 _upperTick, uint128 _liquidity, uint128 _orderType) {
+    returns (int24 _lowerTick, int24 _upperTick) {
 
         _checkRange(_bidLower, _bidUpper, _tickSpacing);
         _checkRange(_askLower, _askUpper, _tickSpacing);
@@ -70,9 +67,9 @@ contract UniswapUtils  {
         require(bidLiquidity > 0 || askLiquidity > 0, "UUC_BAL");
 
         if (bidLiquidity > askLiquidity) {
-            (_lowerTick, _upperTick, _liquidity, _orderType) = (_bidLower, _bidUpper, bidLiquidity, uint128(1));
+            (_lowerTick, _upperTick ) = (_bidLower, _bidUpper);
         } else {
-            (_lowerTick, _upperTick, _liquidity, _orderType) = (_askLower, _askUpper, askLiquidity, uint128(2));
+            (_lowerTick, _upperTick) = (_askLower, _askUpper);
         }
     }
 
