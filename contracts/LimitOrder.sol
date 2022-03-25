@@ -22,19 +22,39 @@ contract UniswapLimitOrder is UniswapUtils {
     mapping(uint256 => address) private NFTToowner;
     INonfungiblePositionManager internal pm = INonfungiblePositionManager(nfpm);
 
+    address public _owner;
+
+    constructor(address owner_) {
+        _owner = owner_;
+    }
+
+    modifier onlyOwner(uint256 tokenId) {
+        require(
+            msg.sender == _owner || msg.sender == NFTToowner[tokenId],
+            "Not an owner call"
+        );
+        _;
+    }
+
+    // event LimitOrderCreated(
+    //     address owner,
+    //     uint256 indexed tokenId,
+    //     uint256 indexed amountIn1,
+    //     uint256 indexed amountIn2,
+    //     bool token0To1
+    // );
+
     event LimitOrderCreated(
-        address  owner,
-        uint256 indexed tokenId,  
-        uint256 indexed amountIn1,
-        uint256 indexed amountIn2,      
-        bool  token0To1
+        address owner,
+        address pool,
+        uint256 indexed tokenId,
+        int24[] tickOrder
     );
 
     event LimitOrderCollected(
         address indexed owner,
         uint256 indexed tokenId,
         uint256 amount
-        
     );
 
     struct LimitOrderParams {
@@ -62,16 +82,13 @@ contract UniswapLimitOrder is UniswapUtils {
         virtual
         returns (uint256 _tokenId)
     {
-        
         uint256 _amount0;
         uint256 _amount1;
-        
 
         if (params.token0To1) {
-            
             _amount0 = params.amount;
             _amount1 = 0;
-            
+
             TransferHelper.safeTransferFrom(
                 params._token0,
                 msg.sender,
@@ -80,10 +97,9 @@ contract UniswapLimitOrder is UniswapUtils {
             );
             TransferHelper.safeApprove(params._token0, nfpm, _amount0);
         } else {
-            
             _amount1 = params.amount;
             _amount0 = 0;
-            
+
             TransferHelper.safeTransferFrom(
                 params._token1,
                 msg.sender,
@@ -108,6 +124,7 @@ contract UniswapLimitOrder is UniswapUtils {
         });
         address _poolAddress = PoolAddress.computeAddress(factory, _poolKey);
         _pool = IUniswapV3Pool(_poolAddress);
+        (,int24 _tickCurrent,,,,,) = _pool.slot0();
 
         (_tickLower, _tickUpper) = UniswapUtils.calculateLimitTicks(
             _pool,
@@ -146,21 +163,19 @@ contract UniswapLimitOrder is UniswapUtils {
 
         // nft -> owner
         NFTToowner[_tokenId] = msg.sender;
-
-        emit LimitOrderCreated(
-            msg.sender,
-            _tokenId,
-            amount0,
-            amount1,         
-           
-            params.token0To1
-        );
+        int24[] memory tickArr = new int24[](2);
+        tickArr[0] = (_tickLower);
+        tickArr[1] = (_tickUpper);
+        tickArr[2] = (_tickCurrent);
+        emit LimitOrderCreated(msg.sender, address(_pool), _tokenId, tickArr);
     }
 
-    function processLimitOrder(uint256 _tokenId) external
-    returns (uint256 _amount) {
-
-        require(msg.sender == NFTToowner[_tokenId] );  
+    function processLimitOrder(uint256 _tokenId)
+        external
+        onlyOwner(_tokenId)
+        returns (uint256 _amount)
+    {
+        require(msg.sender == NFTToowner[_tokenId]);
         LimitOrder memory limitOrder = limitOrders[_tokenId];
 
         pm.decreaseLiquidity(

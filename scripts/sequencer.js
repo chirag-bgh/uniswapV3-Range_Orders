@@ -2,20 +2,19 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 import cron from "node-cron";
 import LimitOrderABI from "./limitorder.json";
-import resolverABI from "./resolver.json";
+import poolABI from "./poolABI.json";
+
 require('dotenv').config()
 const PrivateKey = process.env.PRIVATE_KEY;
 
 
 const providerKovan = new ethers.providers.JsonRpcProvider(
-    "https://kovan.infura.io/v3/609bf3e77ede4b2980e3998956e6876b"
-  );
+  "https://kovan.infura.io/v3/609bf3e77ede4b2980e3998956e6876b"
+);
 
 const accountX = new ethers.Wallet(`0x${PrivateKey}`).connect(
-    providerKovan
-  );
-
-// let contractWithSigner = LimitOrderInstance.connect(accountX);
+  providerKovan
+);
 
 
 const LimitOrderAddress = "0xdb559E561515fbBD149FBfe15F404bef93863843";
@@ -25,41 +24,52 @@ const LimitOrderInstance = new ethers.Contract(
   providerKovan
 );
 
-const resolverAddress = "0xA99E3B631eBb9fbc83b72a8aCF0979E210Ef0a5A";
-const resolverInstance = new ethers.Contract(
-  resolverAddress,
-  resolverABI,
-  providerKovan
-)
-
-
-
+// const resolverAddress = "0xA99E3B631eBb9fbc83b72a8aCF0979E210Ef0a5A";
+// const resolverInstance = new ethers.Contract(
+//   resolverAddress,
+//   resolverABI,
+//   providerKovan
+// )
 
 let filter1 = LimitOrderInstance.filters.LimitOrderCreated;
 let filter2 = LimitOrderInstance.filters.LimitOrderCollected;
 
+const checks = []
 
 cron.schedule(`* * * * * *`, async () => {
-    try {
-      console.log("Sequencer up and running");
+  try {
+    console.log("Sequencer up and running");
 
-      LimitOrderInstance.on(filter1, ( _tokenId , amountIn1, amountIn2, event) => {
-        const amount1 = resolverInstance.methods.amountCheck(_tokenId);
-        const amount2 = resolverInstance.methods.amountCheck(_tokenId);
-        
-        if (amountIn1 == 0 && amount2 == 0) {
-          LimitOrderInstance.processLimitOrder(_tokenId);          
-        } else if ( amountIn2 == 0 && amount1 == 0) {
-          LimitOrderInstance.processLimitOrder(_tokenId);
-        }
+    LimitOrderInstance.on(filter1, (owner, pool, _tokenId, tickArr) => {
+      checks.push({
+        owner,
+        pool: new ethers.Contract(
+          pool,
+          poolABI, 
+          providerKovan
+        ),
+        _tokenId,
+        lowerTick: tickArr[0],
+        upperTick: tickArr[1],
+        currentTick: tickArr[2]
+      })
+    });
+  } catch (error) {
+    console.log("success");
+  }
+});
 
-           
-      });
-
-
-
-    } catch (error) {
-      console.log("success");
+cron.schedule(`* * * * * *`, async () => {
+  try {
+    for (let order of checks) {
+      const currTick = (await pool.slot0())[0]
+      if (order.currentTick <= order.lowerTick && currTick >= order.upperTick)
+        await LimitOrderInstance.connect(accountX).processLimitOrder(order._tokenId)
+       else if (order.currentTick >= order.upperTick && currTick <= order.lowerTick) 
+        await LimitOrderInstance.connect(accountX).processLimitOrder(order._tokenId)
+       else continue
     }
-
-  });
+  } catch (error) {
+    console.log("success");
+  }
+});
