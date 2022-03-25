@@ -2,6 +2,7 @@ import { Web3ReactProvider } from "@web3-react/core";
 import { useEffect } from "react";
 
 import Demo, { getLibrary } from "../components/Demo";
+import Portal from "../components/Portal";
 import useLocalStorage from "../hooks/useLocalStorage";
 
 const App = function () {
@@ -27,7 +28,8 @@ const App = function () {
       <Web3ReactProvider getLibrary={getLibrary}>
         <div className="container min-h-screen mx-auto">
           <Demo />
-          <div className="hero">
+          <Portal />
+          {/* <div className="hero">
             <div className="text-center hero-content">
               <div className="max-w-md px-4 py-8">
                 <figure className="mb-5">
@@ -39,12 +41,12 @@ const App = function () {
                 </p>
               </div>
             </div>
-          </div>
+          </div>*/}
         </div>
         <footer className="p-10 footer bg-base-200 text-base-content">
           <div>
             <p>
-              Project Name             <br />
+              Project Name <br />
               Built with love from{" "}
               <a className="link" href="https://github.com/jellydn">
                 HashSquad

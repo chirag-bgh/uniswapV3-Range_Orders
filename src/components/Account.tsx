@@ -6,7 +6,7 @@ export const Account = function Account() {
 
   return (
     <div className="btn btn-ghost btn-sm rounded-btn">
-      <span>Account</span>
+      <span className= "text-sm hover:text-base hover:text-amber-400">Account</span>
       <span role="img" aria-label="robot">
         🤖
       </span>
@@ -14,7 +14,7 @@ export const Account = function Account() {
         {account === null
           ? "-"
           : account
-          ? `${account.substring(0, 6)}...${account.substring(account.length - 4)}`
+          ? ` ${account.substring(0, 6)}...${account.substring(account.length - 4)}`
           : ""}
       </span>
     </div>

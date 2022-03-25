@@ -4,6 +4,7 @@ import { useWeb3React } from "@web3-react/core";
 import { Account } from "./Account";
 import { Balance } from "./Balance";
 import { ChainId } from "./ChainId";
+import Connect from "./Connect";
 
 export const Header = function () {
   const { active, error } = useWeb3React();
@@ -14,10 +15,11 @@ export const Header = function () {
         <span className="text-lg font-bold">{active ? "🟢" : error ? "🔴" : "🟠"}</span>
       </div>
       <div className="flex-none hidden px-2 mx-2 lg:flex">
-        <div className="flex items-stretch">
+        <div className="flex items-stretch ">
           <ChainId />
           <Account />
           <Balance />
+          <Connect />
         </div>
       </div>
     </div>

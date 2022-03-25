@@ -7,10 +7,10 @@ import {
 import { UserRejectedRequestError as UserRejectedRequestErrorWalletConnect } from "@web3-react/walletconnect-connector";
 import { useEffect, useState } from "react";
 
+import metamask from "../../public/metamask.png";
 import { injected, walletconnect, POLLING_INTERVAL } from "../dapp/connectors";
 import { useEagerConnect, useInactiveListener } from "../dapp/hooks";
 import logger from "../logger";
-import { Header } from "./Header";
 
 function getErrorMessage(error: Error) {
   if (error instanceof NoEthereumProviderError) {
@@ -26,13 +26,7 @@ function getErrorMessage(error: Error) {
   return "An unknown error occurred. Check the console for more details.";
 }
 
-export function getLibrary(provider: any): Web3Provider {
-  const library = new Web3Provider(provider);
-  library.pollingInterval = POLLING_INTERVAL;
-  return library;
-}
-
-export const Demo = function () {
+export const Connect = function Connect() {
   const context = useWeb3React<Web3Provider>();
   const { connector, library, account, activate, deactivate, active, error } = context;
 
@@ -55,10 +49,45 @@ export const Demo = function () {
   const disabled = !triedEager || !!activatingConnector || connected(injected) || connected(walletconnect) || !!error;
   return (
     <>
-      <Header />
-      <div>{!!error && <h4 style={{ marginTop: "1rem", marginBottom: "0" }}>{getErrorMessage(error)}</h4>}</div>
+    <div className="inline-flex">
+      <button
+        type="button"
+        className="btn bg-transparent hover:bg-pink-600 text-pink-700 font-semibold hover:text-white px-4 border border-pink-600 hover:border-transparent rounded"
+        disabled={disabled}
+        onClick={() => {
+          setActivatingConnector(injected);
+          activate(injected);
+        }}
+      >Connect<div className="inline-flex">
+      {activating(injected) && <p className="btn loading">loading...</p>}
+      {connected(injected) && (
+        <span aria-label="check">
+          ed
+        </span>
+      )}
+    </div>
+      </button>
+      
+      
+      {(active || error) && connected(injected) && (
+        <>
+          <button
+            type="button"
+            className="bg-transparent hover:bg-pink-600 text-pink-700 font-semibold hover:text-white px-4 border border-pink-600 hover:border-transparent rounded"
+            onClick={() => {
+              if (connected(walletconnect)) {
+                (connector as any).close();
+              }
+              deactivate();
+            }}
+          >
+            Deactivate
+          </button>
+        </>
+      )}
+    </div>
     </>
   );
 };
 
-export default Demo;
+export default Connect;

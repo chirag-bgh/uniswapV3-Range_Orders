@@ -5,7 +5,7 @@ export const ChainId = function () {
 
   return (
     <div className="btn btn-ghost btn-sm rounded-btn">
-      <span>Chain Id</span>
+      <span className= "text-sm hover:text-base hover:text-amber-400">Chain Id</span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="w-6 h-6 hover:text-blue-400"
