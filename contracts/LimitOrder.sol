@@ -23,11 +23,11 @@ contract UniswapLimitOrder is UniswapUtils {
     INonfungiblePositionManager internal pm = INonfungiblePositionManager(nfpm);
 
     event LimitOrderCreated(
-        address indexed owner,
-        uint256 indexed tokenId,
-        
-        
-        bool indexed token0To1
+        address  owner,
+        uint256 indexed tokenId,  
+        uint256 indexed amountIn1,
+        uint256 indexed amountIn2,      
+        bool  token0To1
     );
 
     event LimitOrderCollected(
@@ -149,7 +149,9 @@ contract UniswapLimitOrder is UniswapUtils {
 
         emit LimitOrderCreated(
             msg.sender,
-            _tokenId,                   
+            _tokenId,
+            amount0,
+            amount1,         
            
             params.token0To1
         );
