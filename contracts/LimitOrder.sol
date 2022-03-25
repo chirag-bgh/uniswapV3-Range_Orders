@@ -27,14 +27,15 @@ contract UniswapLimitOrder is UniswapUtils {
         uint256 indexed tokenId,
         uint160 sqrtPriceX96,
         uint256 amount0,
-        uint256 amount1
+        uint256 amount1,
+        bool indexed token0To1
     );
 
     event LimitOrderCollected(
         address indexed owner,
         uint256 indexed tokenId,
-        uint256 amount0,
-        uint256 amount1
+        uint256 amount
+        
     );
 
     struct LimitOrderParams {
@@ -65,15 +66,13 @@ contract UniswapLimitOrder is UniswapUtils {
         
         uint256 _amount0;
         uint256 _amount1;
-        uint256 _amount0Min;
-        uint256 _amount1Min;
+        
 
         if (params.token0To1) {
             
             _amount0 = params.amount;
             _amount1 = 0;
-            _amount0Min = params.amountMin;
-            _amount1Min = 0;
+            
             TransferHelper.safeTransferFrom(
                 params._token0,
                 msg.sender,
@@ -85,8 +84,7 @@ contract UniswapLimitOrder is UniswapUtils {
             
             _amount1 = params.amount;
             _amount0 = 0;
-            _amount1Min = params.amountMin;
-            _amount0Min = 0;
+            
             TransferHelper.safeTransferFrom(
                 params._token1,
                 msg.sender,
@@ -131,8 +129,8 @@ contract UniswapLimitOrder is UniswapUtils {
                 tickUpper: _tickUpper,
                 amount0Desired: _amount0,
                 amount1Desired: _amount1,
-                amount0Min: _amount0Min,
-                amount1Min: _amount1Min,
+                amount0Min: 0,
+                amount1Min: 0,
                 recipient: address(this),
                 deadline: uint256(-1)
             })
@@ -153,13 +151,15 @@ contract UniswapLimitOrder is UniswapUtils {
         emit LimitOrderCreated(
             msg.sender,
             _tokenId,
-            params._sqrtPriceX96,
+            params._sqrtPriceX96,       
             _amount0,
-            _amount1
+            _amount1,
+            params.token0To1
         );
     }
 
-    function processLimitOrder(uint256 _tokenId) external {
+    function processLimitOrder(uint256 _tokenId) external
+    returns (uint256 _amount) {
 
         require(msg.sender == NFTToowner[_tokenId] );  
         LimitOrder memory limitOrder = limitOrders[_tokenId];
@@ -184,5 +184,7 @@ contract UniswapLimitOrder is UniswapUtils {
         );
 
         pm.burn(_tokenId);
+
+        emit LimitOrderCollected(NFTToowner[_tokenId], _tokenId, _amount);
     }
 }

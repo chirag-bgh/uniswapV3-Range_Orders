@@ -22,7 +22,7 @@ module.exports = {
   networks: {
     hardhat: {
       forking : {
-        url: "https://mainnet.infura.io/v3/609bf3e77ede4b2980e3998956e6876b",
+        url: "https://kovan.infura.io/v3/609bf3e77ede4b2980e3998956e6876b",
       }
     }
   },
