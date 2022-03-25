@@ -1,4 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
+require('dotenv').config()
+const PrivateKey = process.env.PRIVATE_KEY;
+
 
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -19,12 +22,11 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.7.6",
-  networks: {
-    hardhat: {
-      forking : {
+  networks: {    
+      kovan : {
         url: "https://kovan.infura.io/v3/609bf3e77ede4b2980e3998956e6876b",
-      }
-    }
+        accounts: [`0x${PrivateKey}`] 
+      }    
   },
   mocha: {
     timeout: 1000  * 10000

@@ -25,9 +25,8 @@ contract UniswapLimitOrder is UniswapUtils {
     event LimitOrderCreated(
         address indexed owner,
         uint256 indexed tokenId,
-        uint160 sqrtPriceX96,
-        uint256 amount0,
-        uint256 amount1,
+        
+        
         bool indexed token0To1
     );
 
@@ -150,10 +149,8 @@ contract UniswapLimitOrder is UniswapUtils {
 
         emit LimitOrderCreated(
             msg.sender,
-            _tokenId,
-            params._sqrtPriceX96,       
-            _amount0,
-            _amount1,
+            _tokenId,                   
+           
             params.token0To1
         );
     }

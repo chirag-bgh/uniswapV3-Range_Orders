@@ -1,3 +1,4 @@
+//// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity <0.8.0;
 pragma abicoder v2;
 
@@ -29,9 +30,9 @@ contract Position {
     INonfungiblePositionManager private nftManager = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
     
 
-    function amount(uint256 tokenId) internal view returns (AmountInfo memory aInfo) {
+    function amountcheck (uint256 tokenId) internal view returns (AmountInfo memory aInfo) {
         uint256 liquidity;
-        (
+        (   
             ,
             ,
             ,
@@ -50,6 +51,7 @@ contract Position {
             (aInfo.amount0, aInfo.amount1) = withdrawAmount(tokenId, liquidity, 0);
         }
     }
+    
     function withdrawAmount(
         uint256 tokenId,
         uint256 _liquidity,
@@ -62,6 +64,9 @@ contract Position {
             uint256 amount1
         )
     {
+
+        AmountInfo memory amountInfo;
+        
         address token0;
         address token1;
         uint24 fee;
@@ -98,7 +103,7 @@ contract Position {
                 sqrtPriceX96,
                 TickMath.getSqrtRatioAtTick(tickLower),
                 TickMath.getSqrtRatioAtTick(tickUpper),
-                uint128(liquidity <= _liquidity ? liquidity : _liquidity)
+                uint128(amountInfo.liquidity <= _liquidity ? amountInfo.liquidity : _liquidity)
             );
         }
     }
