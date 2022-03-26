@@ -34,7 +34,7 @@ const LimitOrderInstance = new ethers.Contract(
 let filter1 = LimitOrderInstance.filters.LimitOrderCreated;
 // let filter2 = LimitOrderInstance.filters.LimitOrderCollected;
 
-const checks = []
+const checks = [];
 
 cron.schedule(`* * * * * *`, async () => {
   try {
