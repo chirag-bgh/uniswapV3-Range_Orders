@@ -1,5 +1,5 @@
 /* ./src/index.css */
-@import url("https://fonts.googleapis.com/css2?family=Monoton&family=Playfair+Display+SC:ital@0;1&family=Quantico:ital@1&family=Tangerine&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300&family=EB+Garamond:ital@0;1&family=Economica&family=Genos:wght@100&family=Gruppo&family=Kumar+One+Outline&family=Maven+Pro&family=Monoton&family=Playfair+Display+SC:ital@0;1&family=Quantico:ital@1&family=Tangerine&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

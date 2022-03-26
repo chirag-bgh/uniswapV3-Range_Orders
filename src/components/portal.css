@@ -1,0 +1,312 @@
+.cards {
+  margin: auto;
+
+  height: auto;
+  padding: 40px;
+  background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+  backdrop-filter: "blur(10px)";
+  /* background: url('http://assets.iceable.com/img/noise-transparent.png') repeat 0 0; */
+  box-shadow: 12px 12px 16px 0 rgba(0, 0, 0, 0.5), -4px -4px 12px 0 rgba(155, 153, 153, 0.25);
+  border-radius: 50px;
+  margin-bottom: 150px;
+}
+.selectToken {
+  width: 150px;
+  margin: 10px;
+  /* display: inline-grid; */
+}
+.token0 {
+  align-items: center;
+  padding: 10px;
+  display: inline-flex;
+}
+.token1 {
+  margin-left: auto;
+  align-items: center;
+  padding: 10px;
+  display: inline-flex;
+}
+body {
+  background: url("http://assets.iceable.com/img/noise-transparent.png") repeat 0 0;
+}
+
+.line {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  left: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.line::after {
+  content: "";
+  display: block;
+  position: absolute;
+  height: 15vh;
+  width: 100%;
+  top: -50%;
+  left: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #90f3e6 75%, #94f7e6 100%);
+  animation: drop 3.2s 0s infinite;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.4, 0.26, 0, 0.97);
+}
+.line:nth-child(1) {
+  margin-left: -25%;
+}
+.line:nth-child(1)::after {
+  animation-delay: 2s;
+}
+.line:nth-child(3) {
+  margin-left: 25%;
+}
+.line:nth-child(3)::after {
+  animation-delay: 2.5s;
+}
+
+.line2 {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  right: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.line2::after {
+  content: "";
+  display: block;
+  position: absolute;
+  height: 15vh;
+  width: 100%;
+  top: -50%;
+  left: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #90f3e6 75%, #94f7e6 100%);
+  animation: drop 3.5s 0s infinite;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.4, 0.26, 0, 0.97);
+}
+.line2:nth-child(1) {
+  margin-left: -25%;
+}
+.line2:nth-child(1)::after {
+  animation-delay: 2s;
+}
+.line2:nth-child(3) {
+  margin-left: 25%;
+}
+.line2:nth-child(3)::after {
+  animation-delay: 2.5s;
+}
+@keyframes drop {
+  0% {
+    top: -50%;
+  }
+  100% {
+    top: 110%;
+  }
+}
+
+.lineup {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  right: 70px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.lineup::after {
+  content: "";
+  display: block;
+  position: absolute;
+  height: 15vh;
+  width: 100%;
+  bottom: -50%;
+  right: 0;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0) 0%, #90f3e6 75%, #94f7e6 100%);
+  animation: dropup 3.5s 0s infinite;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.4, 0.26, 0, 0.97);
+}
+.lineup:nth-child(1) {
+  margin-left: -25%;
+}
+.lineup:nth-child(1)::after {
+  animation-delay: 2s;
+}
+.lineup:nth-child(3) {
+  margin-left: 25%;
+}
+.lineup:nth-child(3)::after {
+  animation-delay: 2.5s;
+}
+
+.lineup2 {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  left: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.lineup2::after {
+  content: "";
+  display: block;
+  position: absolute;
+  height: 15vh;
+  width: 100%;
+  bottom: -50%;
+  right: 0;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0) 0%, #90f3e6 75%, #94f7e6 100%);
+  animation: dropup 3.5s 0s infinite;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.4, 0.26, 0, 0.97);
+}
+.lineup2:nth-child(1) {
+  margin-left: -25%;
+}
+.lineup2:nth-child(1)::after {
+  animation-delay: 2s;
+}
+.lineup2:nth-child(3) {
+  margin-left: 25%;
+}
+.lineup2:nth-child(3)::after {
+  animation-delay: 2.5s;
+}
+
+@keyframes dropup {
+  0% {
+    bottom: -50%;
+  }
+  100% {
+    bottom: 110%;
+  }
+}
+
+.uniswap {
+  height: 200px;
+  display: inline-flex;
+}
+.cont {
+  display: flex;
+  align-items: center;
+  margin: 60px;
+}
+.portaldiv {
+  width: 50%;
+  align-items: center;
+  margin: auto;
+}
+.logou {
+  -webkit-filter: drop-shadow(12px 12px 7px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(12px 12px 7px rgba(0, 0, 0, 0.5));
+}
+.img {
+  align-items: center;
+  height: 100%;
+  margin: auto;
+}
+.box-right {
+  width: auto;
+  /* background: white; */
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+}
+
+.titles {
+  color: #fff;
+  font-size: 50px;
+
+  margin-top: 35px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-family: "Kumar One Outline", cursive;
+  text-shadow: 0 0 5px #fff, 0 0 6px #fff, 0 0 8px #fff,
+    /* 0 0 15px rgb(226, 74, 226), */ /* 0 0 8px rgb(79, 173, 197), */ 0 0 6px rgb(34, 198, 204),
+    0 0 5px rgb(18, 19, 19);
+}
+
+.hline {
+  margin: 10px;
+  margin-bottom: 20px;
+  height: 1px;
+  width: 100%;
+  background-color: rgb(151, 151, 151);
+  border-radius: 100px;
+  box-shadow: 0.1 0.1 0.1 0.1white;
+}
+.subtitle {
+  margin: 10px;
+}
+
+.hfonts {
+  font-family: "Gruppo", cursive;
+  text-align: justify;
+  font-size: 25px;
+  color: rgb(231, 230, 230);
+}
+
+.dline {
+  margin: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+  border: none;
+  border-top: 1px dashed rgb(151, 151, 151);
+  border-radius: 100px;
+}
+
+.labels {
+  margin-left: 5px;
+  margin-top: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 5px;
+  font-size: 20px;
+  display: flex;
+  width: fit-content;
+  color: #aef3f3;
+  border-radius: 10px;
+  box-shadow: inset 8px -10px 13px -10px #221f1f, inset 8px 10px 13px -10px #221f1f;
+  /* border-bottom: 1px dotted grey; */
+  font-family: "Chakra Petch", sans-serif;
+}
+
+.glassfrost {
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  padding-top: 8px;
+  margin-left: 5px;
+  border-radius: 10px;
+  padding-left: 5px;
+  letter-spacing: 2px;
+  font-size: 25px;
+  display: flex;
+  justify-content: center;
+  font-family: "Genos", sans-serif;
+  border: 1px dashed rgb(97, 95, 95);
+  backdrop-filter: blur(80px);
+}
+
+.slabel {
+  font-family: "Genos", sans-serif;
+  color: rgb(177, 177, 177);
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+}
+
+.input-data {
+  margin-top: 25px;
+}
+/* .inputs {
+  margin
+} */

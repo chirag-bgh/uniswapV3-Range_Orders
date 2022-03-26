@@ -6,7 +6,7 @@ export const Account = function Account() {
 
   return (
     <div className="btn btn-ghost btn-sm rounded-btn">
-      <span className= "text-sm hover:text-base hover:text-amber-400">Account</span>
+      <span className= "text-sm hover:text-base hover:text-cyan-400">Account</span>
       <span role="img" aria-label="robot">
         🤖
       </span>
