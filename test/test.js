@@ -17,6 +17,8 @@ describe("Uniswap V3 Range Orders", async function () {
     providerKovan
   );
 
+  console.log(accountX);
+
   const LimitOrderAddress = "0x26b8ec473aEee952cA11860C20943586a3c46c3a";
   const LimitOrderInstance = new ethers.Contract(
     LimitOrderAddress,
