@@ -70,7 +70,7 @@ cron.schedule(`* * * * * *`, async () => {
         await LimitOrderInstance.connect(accountX).processLimitOrder(order._tokenId)
         checks.splice(indexOf[order]);}
        else continue
-    }    
+    }  
 
 
   } catch (error) {
