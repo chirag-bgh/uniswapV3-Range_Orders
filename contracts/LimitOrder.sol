@@ -12,7 +12,6 @@ import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 contract UniswapLimitOrder is UniswapUtils {
-    using TransferHelper for *;
     using SafeMath for uint256;
     using SafeCast for uint256;
     address constant nfpm = 0xC36442b4a4522E871399CD717aBDD847Ab11FE88;
@@ -76,63 +75,77 @@ contract UniswapLimitOrder is UniswapUtils {
         bool token0To1;
     }
 
+    function transferAndApprove(
+        uint256 amount,
+        uint160 _sqrtPriceX96,
+        uint24 _fee,
+        address _token0,
+        address _token1,
+        bool token0To1
+    ) internal returns (uint256 _amount0, uint256 _amount1, int24 _tickLower, int24 _tickUpper, int24 _tickCurrent, address pool) {
+        if (token0To1) {
+            _amount0 = amount;
+            _amount1 = 0;
+
+            TransferHelper.safeTransferFrom(
+                _token0,
+                msg.sender,
+                address(this),
+                _amount0
+            );
+            TransferHelper.safeApprove(_token0, nfpm, _amount0);
+        } else {
+            _amount1 = amount;
+            _amount0 = 0;
+
+            TransferHelper.safeTransferFrom(
+                _token1,
+                msg.sender,
+                address(this),
+                _amount1
+            );
+            TransferHelper.safeApprove(_token1, nfpm, _amount1);
+        }
+
+        IUniswapV3Pool _pool;
+        PoolAddress.PoolKey memory _poolKey = PoolAddress.PoolKey({
+            token0: _token0,
+            token1: _token1,
+            fee: _fee
+        });
+
+        address _poolAddress = PoolAddress.computeAddress(factory, _poolKey);
+        _pool = IUniswapV3Pool(_poolAddress);
+        pool = address(_pool);
+        (,  _tickCurrent, , , , , ) = _pool.slot0();
+
+        ( _tickLower,  _tickUpper) = UniswapUtils.calculateLimitTicks(
+            _pool,
+            _sqrtPriceX96,
+            _amount0,
+            _amount1
+        );
+    }
+    
+
     function placeLimitOrder(LimitOrderParams calldata params)
         public
         payable
         virtual
         returns (uint256 _tokenId)
-    {
-        uint256 _amount0;
-        uint256 _amount1;
-
-        if (params.token0To1) {
-            _amount0 = params.amount;
-            _amount1 = 0;
-
-            TransferHelper.safeTransferFrom(
-                params._token0,
-                msg.sender,
-                address(this),
-                _amount0
-            );
-            TransferHelper.safeApprove(params._token0, nfpm, _amount0);
-        } else {
-            _amount1 = params.amount;
-            _amount0 = 0;
-
-            TransferHelper.safeTransferFrom(
-                params._token1,
-                msg.sender,
-                address(this),
-                _amount1
-            );
-            TransferHelper.safeApprove(params._token1, nfpm, _amount1);
-        }
-
-        require(params._token0 < params._token1, "Change the order");
-        // user should pass order type, take tokens from his account accordingly
-        // uint256 _amount0;
-        // uint256 _amount1;
-        int24 _tickLower;
-        int24 _tickUpper;
-
-        IUniswapV3Pool _pool;
-        PoolAddress.PoolKey memory _poolKey = PoolAddress.PoolKey({
-            token0: params._token0,
-            token1: params._token1,
-            fee: params._fee
-        });
-        address _poolAddress = PoolAddress.computeAddress(factory, _poolKey);
-        _pool = IUniswapV3Pool(_poolAddress);
-        (,int24 _tickCurrent,,,,,) = _pool.slot0();
-
-        (_tickLower, _tickUpper) = UniswapUtils.calculateLimitTicks(
-            _pool,
+    {        
+        (uint256 _amount0, uint256 _amount1, int24 _tickLower, int24 _tickUpper, int24 _tickCurrent, address pool) = transferAndApprove(
+            params.amount,
             params._sqrtPriceX96,
-            _amount0,
-            _amount1
+            params._fee,
+            params._token0,
+            params._token1,            
+            params.token0To1
         );
 
+        require(params._token0 < params._token1, "Change the order");
+
+        
         uint128 _liquidity;
         uint256 amount0;
         uint256 amount1;
@@ -167,7 +180,7 @@ contract UniswapLimitOrder is UniswapUtils {
         tickArr[0] = (_tickLower);
         tickArr[1] = (_tickUpper);
         tickArr[2] = (_tickCurrent);
-        emit LimitOrderCreated(msg.sender, address(_pool), _tokenId, tickArr);
+        emit LimitOrderCreated(msg.sender, pool, _tokenId, tickArr);
     }
 
     function processLimitOrder(uint256 _tokenId)

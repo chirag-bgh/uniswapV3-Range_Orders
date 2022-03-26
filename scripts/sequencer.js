@@ -17,7 +17,7 @@ const accountX = new ethers.Wallet(`0x${PrivateKey}`).connect(
 );
 
 
-const LimitOrderAddress = "0xdb559E561515fbBD149FBfe15F404bef93863843";
+const LimitOrderAddress = "0x26b8ec473aEee952cA11860C20943586a3c46c3a";
 const LimitOrderInstance = new ethers.Contract(
   LimitOrderAddress,
   LimitOrderABI,
@@ -32,7 +32,7 @@ const LimitOrderInstance = new ethers.Contract(
 // )
 
 let filter1 = LimitOrderInstance.filters.LimitOrderCreated;
-let filter2 = LimitOrderInstance.filters.LimitOrderCollected;
+// let filter2 = LimitOrderInstance.filters.LimitOrderCollected;
 
 const checks = []
 
@@ -63,12 +63,16 @@ cron.schedule(`* * * * * *`, async () => {
   try {
     for (let order of checks) {
       const currTick = (await pool.slot0())[0]
-      if (order.currentTick <= order.lowerTick && currTick >= order.upperTick)
+      if (order.currentTick <= order.lowerTick && currTick >= order.upperTick){
         await LimitOrderInstance.connect(accountX).processLimitOrder(order._tokenId)
-       else if (order.currentTick >= order.upperTick && currTick <= order.lowerTick) 
+        checks.splice(indexOf[order]);}
+       else if (order.currentTick >= order.upperTick && currTick <= order.lowerTick){ 
         await LimitOrderInstance.connect(accountX).processLimitOrder(order._tokenId)
+        checks.splice(indexOf[order]);}
        else continue
-    }
+    }    
+
+
   } catch (error) {
     console.log("success");
   }
