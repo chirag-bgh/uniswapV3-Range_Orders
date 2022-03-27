@@ -16,7 +16,9 @@ const accountX = new ethers.Wallet(`0x${PrivateKey}`).connect(
 );
 
 
-const LimitOrderAddress = "0xe8b7AFBDAFbC94dcF2B5B4e99e8A764449DbEb93";
+const LimitOrderAddress = "0x38366568770dE7bd95532e28F257D5699FF90547";
+console.log(69);
+
 const LimitOrderInstance = new ethers.Contract(
   LimitOrderAddress,
   LimitOrderABI,
@@ -27,7 +29,7 @@ const LimitOrderInstance = new ethers.Contract(
 let filter1 = LimitOrderInstance.filters.LimitOrderCreated;
 // let filter2 = LimitOrderInstance.filters.LimitOrderCollected;
 
-const checks = [];
+let checks = [];
 
 
 cron.schedule(`* * * * * *`, async () => {
@@ -52,6 +54,7 @@ cron.schedule(`* * * * * *`, async () => {
   } catch (error) {
     console.log("error");
   }
+  
 });
 
 cron.schedule(`* * * * * *`, async () => {

@@ -14,6 +14,22 @@ import "./UniswapUtils.sol";
 import "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
+library Math {
+    function sqrt(uint160 y) internal pure returns (uint160 z) {
+        if (y > 3) {
+            z = y;
+            uint160 x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
+        }
+        // else z = 0 (default value)
+    }
+}
+
 contract UniswapLimitOrder is UniswapUtils {
     using SafeMath for uint256;
     using SafeCast for uint256;
@@ -63,7 +79,7 @@ contract UniswapLimitOrder is UniswapUtils {
         address _token0;
         address _token1;
         uint24 _fee;
-        uint160 _sqrtPriceX96;
+        uint160 _price;
         uint256 amount;
         uint256 amountMin;
         bool token0To1;
@@ -78,9 +94,15 @@ contract UniswapLimitOrder is UniswapUtils {
         bool token0To1;
     }
 
+    function sqrt(uint160 _price) pure internal returns ( uint160 sqrtPriceX96) {
+
+         sqrtPriceX96 = Math.sqrt(_price)*(2**96);
+    }
+
+
     function transferAndApprove(
-        uint256 amount,
-        uint160 _sqrtPriceX96,
+        uint256 amount,        
+        uint160 price,
         uint24 _fee,
         address _token0,
         address _token1,
@@ -110,6 +132,9 @@ contract UniswapLimitOrder is UniswapUtils {
             TransferHelper.safeApprove(_token1, nfpm, _amount1);
         }
 
+       uint160 _sqrtPriceX96 =  sqrt(price);
+
+
         IUniswapV3Pool _pool;
         PoolAddress.PoolKey memory _poolKey = PoolAddress.PoolKey({
             token0: _token0,
@@ -122,6 +147,7 @@ contract UniswapLimitOrder is UniswapUtils {
         pool = address(_pool);
         (,  _tickCurrent, , , , , ) = _pool.slot0();
 
+        
         ( _tickLower,  _tickUpper) = UniswapUtils.calculateLimitTicks(
             _pool,
             _sqrtPriceX96,
@@ -139,7 +165,7 @@ contract UniswapLimitOrder is UniswapUtils {
     {        
         (uint256 _amount0, uint256 _amount1, int24 _tickLower, int24 _tickUpper, int24 _tickCurrent, address pool) = transferAndApprove(
             params.amount,
-            params._sqrtPriceX96,
+            params._price,
             params._fee,
             params._token0,
             params._token1,            

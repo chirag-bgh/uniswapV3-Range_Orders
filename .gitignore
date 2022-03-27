@@ -4,6 +4,7 @@ coverage
 coverage.json
 typechain
 limitorder.txt
+Position.sol
 
 
 #Hardhat files

@@ -1,4 +1,4 @@
-const BigNumber = require('bignumber.js');
+// const BigNumber = require('bignumber.js');
 const { ethers } = require("hardhat");
 const abi = require("../abi.json");
 const LimitOrderABI = require("../scripts/limitorder.json");
@@ -17,7 +17,7 @@ describe("Uniswap V3 Range Orders", function () {
     providerKovan
   );
   
-  const LimitOrderAddress = "0xe8b7AFBDAFbC94dcF2B5B4e99e8A764449DbEb93";
+  const LimitOrderAddress = "0x38366568770dE7bd95532e28F257D5699FF90547";
   const LimitOrderInstance = new ethers.Contract(
     LimitOrderAddress,
     LimitOrderABI,
@@ -27,23 +27,32 @@ describe("Uniswap V3 Range Orders", function () {
   // const usdc = await new ethers.Contract(token1, abi);
   // const weth = await new ethers.Contract(token0, abi);
 
-  const amount = ethers.utils.parseEther("0.001"); //(0.001 ETH)
-  const fee = 3000;
-  const price = 3143;
+  // const amount = ethers.utils.parseEther("0.001"); //(0.001 ETH)
+  const amount = "1000000000000000";
+  const fee = "3000";
+  const price = "3143";
+  console.log(price);
 
 
-  let priceB = new BigNumber(price);
-  let sqrtPriceB = priceB.squareRoot();
-  let x = new BigNumber(2);
-  let raised = x.exponentiatedBy(96);
-  let sqrtPriceX96B = sqrtPriceB.multipliedBy(raised);
+  // let priceB = new BigNumber(price);
+  // console.log(priceB)
+  // let sqrtPriceB = priceB.squareRoot();
+  // console.log(sqrtPriceB)
+  // let x = new BigNumber(2);
+  // console.log(x)
+  // let raised = x.exponentiatedBy(96);
+  // console.log(raised)
+  // let sqrtPriceX96B = sqrtPriceB.multipliedBy(raised);
+  // console.log(sqrtPriceX96B)
+  // let sqrtPriceX96Bint = sqrtPriceX96B.integerValue();
+  // console.log(sqrtPriceX96Bint)
   
   
   it("Should place limit order", async function () {
     
     //approve
     let _token0 = new ethers.Contract(token0, abi);
-    await _token0.connect(accountX).approve(LimitOrderAddress, amount);
+    // await _token0.connect(accountX).approve(LimitOrderAddress, amount);
 
     
     // call
@@ -51,7 +60,7 @@ describe("Uniswap V3 Range Orders", function () {
       _token0: token0,
       _token1: token1,
       _fee: fee,
-      _sqrtPriceX96: sqrtPriceX96B.toFixed(),
+      _price: price,
       _amount: amount,
       _amountMin: "0",
       token0To1: true
