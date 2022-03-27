@@ -1,10 +1,9 @@
 
-import { ethers } from "ethers";
-import cron from "node-cron";
-import LimitOrderABI from "./limitorder.json";
-import poolABI from "./poolABI.json";
-
-require('dotenv').config()
+const { ethers } = require("hardhat");
+const { cron } = require("node-cron");
+const { LimitOrderABI } = require("./limitorder.json");
+const { poolABI } = require("./poolABI.json");
+require('dotenv').config();
 const PrivateKey = process.env.PRIVATE_KEY;
 
 
@@ -17,24 +16,19 @@ const accountX = new ethers.Wallet(`0x${PrivateKey}`).connect(
 );
 
 
-const LimitOrderAddress = "0x26b8ec473aEee952cA11860C20943586a3c46c3a";
+const LimitOrderAddress = "0xe8b7AFBDAFbC94dcF2B5B4e99e8A764449DbEb93";
 const LimitOrderInstance = new ethers.Contract(
   LimitOrderAddress,
   LimitOrderABI,
   providerKovan
 );
 
-// const resolverAddress = "0xA99E3B631eBb9fbc83b72a8aCF0979E210Ef0a5A";
-// const resolverInstance = new ethers.Contract(
-//   resolverAddress,
-//   resolverABI,
-//   providerKovan
-// )
 
 let filter1 = LimitOrderInstance.filters.LimitOrderCreated;
 // let filter2 = LimitOrderInstance.filters.LimitOrderCollected;
 
 const checks = [];
+
 
 cron.schedule(`* * * * * *`, async () => {
   try {
@@ -45,7 +39,7 @@ cron.schedule(`* * * * * *`, async () => {
         owner,
         pool: new ethers.Contract(
           pool,
-          poolABI, 
+          poolABI,
           providerKovan
         ),
         _tokenId,
@@ -53,9 +47,10 @@ cron.schedule(`* * * * * *`, async () => {
         upperTick: tickArr[1],
         currentTick: tickArr[2]
       })
+      console.log(checks);
     });
   } catch (error) {
-    console.log("success");
+    console.log("error");
   }
 });
 
@@ -63,17 +58,19 @@ cron.schedule(`* * * * * *`, async () => {
   try {
     for (let order of checks) {
       const currTick = (await pool.slot0())[0]
-      if (order.currentTick <= order.lowerTick && currTick >= order.upperTick){
+      if (order.currentTick <= order.lowerTick && currTick >= order.upperTick) {
         await LimitOrderInstance.connect(accountX).processLimitOrder(order._tokenId)
-        checks.splice(indexOf[order]);}
-       else if (order.currentTick >= order.upperTick && currTick <= order.lowerTick){ 
+        checks.splice(indexOf[order]);
+      }
+      else if (order.currentTick >= order.upperTick && currTick <= order.lowerTick) {
         await LimitOrderInstance.connect(accountX).processLimitOrder(order._tokenId)
-        checks.splice(indexOf[order]);}
-       else continue
-    }  
+        checks.splice(indexOf[order]);
+      }
+      else continue
+    }
 
 
   } catch (error) {
-    console.log("success");
+    console.log("error");
   }
 });
