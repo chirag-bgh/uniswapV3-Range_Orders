@@ -1,9 +1,6 @@
 import React from "react";
 import Select from "react-select";
 
-import options from "./options";
-
-const SELECT_VALUE_KEY = "MySelectValue";
 
 const customStyles = {
     menu: (provided, state) => ({
@@ -22,21 +19,21 @@ const customStyles = {
         backdropFilter: 'blur(0.8px)'
     })
 }
-export default function SelectOptions() {
+export default function SelectOptions(props) {
   const [selected, setSelected] = React.useState([]);
   const handleChange = (s) => {
-    localStorage.setItem(SELECT_VALUE_KEY, JSON.stringify(s));
+    localStorage.setItem(props.key, JSON.stringify(s));
     setSelected(s);
   };
 
   React.useEffect(() => {
-    const lastSelected = JSON.parse(localStorage.getItem(SELECT_VALUE_KEY) ?? "[]");
+    const lastSelected = JSON.parse(localStorage.getItem(props.key) ?? "[]");
     setSelected(lastSelected);
   }, []);
 
   return (
     <div className="selectToken">
-      <Select value={selected} onChange={handleChange} options={options} styles = {customStyles} theme={(theme) => ({
+      <Select value={selected} onChange={handleChange} options={props.options} styles = {customStyles} theme={(theme) => ({
       ...theme,
       borderRadius: '10px',
       colors: {
