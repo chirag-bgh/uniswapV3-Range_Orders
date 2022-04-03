@@ -1,6 +1,4 @@
-# Welcome to dapp-starter 👋
-
-> Opinionated Dapp Starter Template
+# Welcome to UniOrders
 
 ## Features
 
