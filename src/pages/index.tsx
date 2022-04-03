@@ -43,7 +43,7 @@ const App = function () {
               <img className="logou" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Uniswap_Logo.png/600px-Uniswap_Logo.png?20210117061337" />
             </div>
             <div className="portaldiv"> */}
-              <Portal price='100'/>
+              <Portal price='3500'/>
             {/* </div> */}
             {/* <div className="image"> <img className= "uniswap" src="https://cdn3d.iconscout.com/3d/free/thumb/uniswap-3443548-2879644.png"/></div>  */}
           {/* </div> */}
