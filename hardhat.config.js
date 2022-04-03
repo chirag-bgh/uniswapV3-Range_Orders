@@ -24,7 +24,14 @@ module.exports = {
   networks: {
     kovan: {
       url: "https://kovan.infura.io/v3/609bf3e77ede4b2980e3998956e6876b",
-      accounts: [`0x${PrivateKey}`]
+      accounts: [`0x${PrivateKey}`],
+      gas: 2100000,
+      gasPrice: 8000000000
+    },
+    hardhat: {
+      forking: {
+        url: "https://eth-mainnet.alchemyapi.io/v2/ZGnsATwB-kOvnSC-PxsOSSHdFhyGb_Ot"
+      }
     }
   },
   mocha: {

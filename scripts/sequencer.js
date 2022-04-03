@@ -1,8 +1,8 @@
 
 const { ethers } = require("hardhat");
-const { cron } = require("node-cron");
-const { LimitOrderABI } = require("./limitorder.json");
-const { poolABI } = require("./poolABI.json");
+const cron = require("node-cron");
+const LimitOrderABI = require("./limitorder.json");
+const poolABI = require("./poolABI.json");
 require('dotenv').config();
 const PrivateKey = process.env.PRIVATE_KEY;
 
@@ -15,9 +15,8 @@ const accountX = new ethers.Wallet(`0x${PrivateKey}`).connect(
   providerKovan
 );
 
+const LimitOrderAddress = "0x8136afD3AEff4222911b9480660127F047e55050";
 
-const LimitOrderAddress = "0x38366568770dE7bd95532e28F257D5699FF90547";
-console.log(69);
 
 const LimitOrderInstance = new ethers.Contract(
   LimitOrderAddress,
@@ -54,7 +53,7 @@ cron.schedule(`* * * * * *`, async () => {
   } catch (error) {
     console.log("error");
   }
-  
+
 });
 
 cron.schedule(`* * * * * *`, async () => {
